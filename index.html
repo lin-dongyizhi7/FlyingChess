@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>情侣双人飞行棋</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">情侣双人飞行棋</div>
+            <div class="controls">
+                <select id="levelSelect" aria-label="选择关卡">
+                    <option value="easy">入门</option>
+                    <option value="normal" selected>标准</option>
+                    <option value="hard">挑战</option>
+                    <option value="custom">自定义</option>
+                </select>
+                <button id="resetBtn" class="btn">重开</button>
+            </div>
+        </header>
+
+        <main class="main">
+            <section class="board-section">
+                <div id="board" class="board" role="grid" aria-label="棋盘"></div>
+            </section>
+            <section class="side">
+                <div class="status">
+                    <div id="turnText">当前：玩家A</div>
+                    <div id="diceFace" class="dice">-</div>
+                </div>
+                <div class="actions">
+                    <button id="rollBtn" class="btn primary">掷骰</button>
+                    <button id="openCustomEditorBtn" class="btn">自定义任务</button>
+                    <button id="openLoadTasksBtn" class="btn">加载任务文件</button>
+                </div>
+                <div class="legend">
+                    <div class="legend-title">格子图例</div>
+                    <ul>
+                        <li><span class="cell sample start"></span> 起点</li>
+                        <li><span class="cell sample end"></span> 终点</li>
+                        <li><span class="cell sample boost"></span> 前进</li>
+                        <li><span class="cell sample back"></span> 后退</li>
+                        <li><span class="cell sample swap"></span> 交换</li>
+                        <li><span class="cell sample jump"></span> 跳转</li>
+                        <li><span class="cell sample safe"></span> 安全</li>
+                        
+                    </ul>
+                </div>
+
+                <div id="customPanel" class="custom hidden">
+                    <div class="custom-row">
+                        <label>格子数</label>
+                        <input id="customSize" type="number" min="10" max="300" value="60">
+                        <button id="applyCustomSize" class="btn">应用</button>
+                    </div>
+                    <div class="custom-row">
+                        <label>编辑格子类型</label>
+                        <select id="cellType">
+                            <option value="none">普通</option>
+                            <option value="boost" data-param="+3">前进(+3)</option>
+                            <option value="back" data-param="-3">后退(-3)</option>
+                            <option value="swap">交换</option>
+                            <option value="jump" data-param="10">跳转(到10)</option>
+                            <option value="safe">安全</option>
+                            <option value="start">起点</option>
+                            <option value="end">终点</option>
+                        </select>
+                        <input id="cellParam" type="number" placeholder="数值(可选)">
+                    </div>
+                    <div class="hint">点按棋盘上的格子进行标注/修改。</div>
+                </div>
+
+                <div id="winner" class="winner hidden"></div>
+                <div id="taskModal" class="modal hidden">
+                    <div class="modal-backdrop" data-close="1"></div>
+                    <div class="modal-panel">
+                        <div class="modal-title">本格任务</div>
+                        <div id="taskContent" class="modal-content"></div>
+                    </div>
+                </div>
+
+                <div id="customEditorModal" class="modal hidden">
+                    <div class="modal-backdrop" data-close="1"></div>
+                    <div class="modal-panel">
+                        <div class="modal-title">自定义任务清单</div>
+                        <div class="modal-content">
+                            <div class="custom-row" style="margin-bottom:8px;">
+                                <label>格子数(含起点终点)</label>
+                                <input id="customEditorSize" type="number" min="3" max="80" value="30">
+                                <button id="addOneCellBtn" class="btn">新增一格</button>
+                            </div>
+                            <div id="customTasksList" style="max-height:40vh;overflow:auto;border:1px solid #2a2f60;border-radius:8px;padding:8px"></div>
+                            <div class="custom-row" style="justify-content:flex-end;margin-top:8px;gap:8px;">
+                                <button id="cancelCustomEditor" class="btn">取消</button>
+                                <button id="confirmCustomEditor" class="btn primary">完成</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loadTasksModal" class="modal hidden">
+                    <div class="modal-backdrop" data-close="1"></div>
+                    <div class="modal-panel">
+                        <div class="modal-title">加载任务文件</div>
+                        <div class="modal-content">
+                            <div class="custom-row" style="margin-bottom:8px;">
+                                <label>选择文件</label>
+                                <select id="tasksFileSelect">
+                                    <option value="tasks/list1.json">tasks/list1.json</option>
+                                    <option value="tasks/list2.json">tasks/list2.json</option>
+                                </select>
+                                <input id="tasksFilePath" type="text" placeholder="或输入路径，如 tasks/list1.json" style="flex:1;min-width:140px;">
+                            </div>
+                            <div class="custom-row" style="margin-bottom:8px;">
+                                <label>格子数(含起点终点)</label>
+                                <input id="loadSizeInput" type="number" min="3" max="80" value="40">
+                            </div>
+                            <div class="custom-row" style="justify-content:flex-end;margin-top:8px;gap:8px;">
+                                <button id="cancelLoadTasks" class="btn">取消</button>
+                                <button id="confirmLoadTasks" class="btn primary">完成</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+></html>
+
+
