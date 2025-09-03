@@ -60,18 +60,23 @@
         boardEl.innerHTML = "";
 
         const positions = computeSpiralPositions(total);
+        drawOrderPath(positions);
 
         for (let i = 0; i < total; i++) {
             const info = getCellInfo(i);
             const cell = document.createElement("div");
-            cell.className = `cell ${info.type !== CELL_TYPES.NONE ? info.type : ""}`.trim();
+            const theme = pickTheme(i);
+            cell.className = `cell ${theme} ${info.type !== CELL_TYPES.NONE ? info.type : ""}`.trim();
             cell.dataset.index = String(i);
             cell.setAttribute("role", "gridcell");
             cell.setAttribute("aria-label", `${i}`);
             cell.style.left = positions[i].x;
             cell.style.top = positions[i].y;
             cell.title = buildCellTitle(i, info);
-            cell.textContent = i;
+            const num = document.createElement("span");
+            num.className = "num";
+            num.textContent = String(i + 1);
+            cell.appendChild(num);
 
             if (isCustom) {
                 cell.addEventListener("click", () => editCell(i));
@@ -80,6 +85,22 @@
             boardEl.appendChild(cell);
         }
         renderPieces();
+    }
+
+    function drawOrderPath(positions){
+        const svg = document.getElementById("boardPath");
+        const line = document.getElementById("pathLine");
+        if(!svg || !line) return;
+        const pts = positions.map(p => `${parseFloat(p.x)},${parseFloat(p.y)}`).join(" ");
+        line.setAttribute("points", pts);
+    }
+
+    function pickTheme(index){
+        const mod = index % 4;
+        if(mod===0) return "theme-a";
+        if(mod===1) return "theme-b";
+        if(mod===2) return "theme-c";
+        return "theme-d";
     }
 
     function buildCellTitle(index, info) {
@@ -95,19 +116,35 @@
         }
     }
 
+    // 矩形环形跑道：外圈一圈→内缩继续，直至填满
     function computeSpiralPositions(total) {
         const positions = new Array(total);
-        const turns = clamp(Math.round(total / 20), 2, 6);
-        const startR = 12; // 百分比
-        const endR = 46;
-        const angleStep = (Math.PI * 2 * turns) / Math.max(1, total - 1);
-        for (let i = 0; i < total; i++) {
-            const t = total === 1 ? 0 : i / (total - 1);
-            const r = startR + (endR - startR) * t;
-            const a = i * angleStep - Math.PI / 2; // 让起点在上方
-            const cx = 50 + r * Math.cos(a);
-            const cy = 50 + r * Math.sin(a);
-            positions[i] = { x: cx.toFixed(2) + "%", y: cy.toFixed(2) + "%" };
+        const side = Math.ceil(Math.sqrt(total));
+        const rows = side;
+        const cols = side;
+        const gap = 0; // 相邻格子贴合
+        const cell = 100 / cols;
+
+        // 生成按环展开的网格坐标序列
+        let top = 0, left = 0, bottom = rows - 1, right = cols - 1;
+        const order = [];
+        while (top <= bottom && left <= right && order.length < total) {
+            for (let c = left; c <= right && order.length < total; c++) order.push([top, c]);
+            for (let r = top + 1; r <= bottom && order.length < total; r++) order.push([r, right]);
+            if (top < bottom) {
+                for (let c = right - 1; c >= left && order.length < total; c--) order.push([bottom, c]);
+            }
+            if (left < right) {
+                for (let r = bottom - 1; r > top && order.length < total; r--) order.push([r, left]);
+            }
+            top++; left++; bottom--; right--;
+        }
+
+        for (let i = 0; i < Math.min(order.length, total); i++) {
+            const [r, c] = order[i];
+            const x = c * cell + cell / 2;
+            const y = r * cell + cell / 2;
+            positions[i] = { x: x.toFixed(2) + "%", y: y.toFixed(2) + "%" };
         }
         return positions;
     }
@@ -138,8 +175,7 @@
     }
 
     function refreshStatus() {
-        turnTextEl.textContent = `当前：${players[turnIndex].name}`;
-        diceFaceEl.textContent = "-";
+        if (diceFaceEl) diceFaceEl.textContent = "-";
         winnerEl.classList.add("hidden");
     }
 
@@ -155,9 +191,12 @@
     function switchLevel(key) {
         isCustom = key === "custom";
         currentLevelKey = key;
-        if (isCustom) {
-            // 打开自定义编辑器（不立即切换关卡，直到确认）
+        if (key === "custom") {
             openCustomEditor();
+            return;
+        }
+        if (key === "load") {
+            openLoadTasks();
             return;
         } else {
             level = structuredClone(LEVELS[key]);

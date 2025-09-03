@@ -13,17 +13,30 @@ select,input{background:#1c2044;border:1px solid #2e356f;color:#fff;border-radiu
 @media (max-width:900px){.main{grid-template-columns:1fr}.side{order:-1}}
 
 .board-section{display:flex;align-items:center;justify-content:center}
-.board{position:relative;--cell:clamp(24px,7vw,48px);width:100%;max-width:860px;aspect-ratio:1}
-.cell{position:absolute;width:var(--cell);height:var(--cell);border-radius:12px;background:#1a1e3a;border:1px solid #2c3260;display:flex;align-items:center;justify-content:center;font-size:12px;color:#9aa0ff;user-select:none;transform:translate(-50%,-50%)}
+.board{position:relative;--cell:clamp(24px,7vw,48px);width:100%;max-width:860px;aspect-ratio:1;background:transparent}
+.board-path{position:absolute;inset:0;z-index:2;pointer-events:none}
+.board-path #pathLine{stroke:#ffffff50;stroke-width:1.2}
+.cell{position:absolute;width:var(--cell);height:var(--cell);border-radius:18px;background:#1a1e3a;border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,.9);user-select:none;transform:translate(-50%,-50%);z-index:1;
+box-shadow:0 6px 14px rgba(0,0,0,.28), inset 0 2px 0 rgba(255,255,255,.06), inset 0 -2px 0 rgba(0,0,0,.15)}
+.cell span.num{font-weight:700;opacity:.95;text-shadow:0 1px 0 rgba(0,0,0,.35)}
 .cell.sample{width:18px;height:18px;aspect-ratio:auto;display:inline-flex;margin-right:8px}
 
-.cell.start{background:linear-gradient(135deg,#0f5132,#198754)}
-.cell.end{background:linear-gradient(135deg,#4c0519,#dc3545)}
-.cell.boost{background:linear-gradient(135deg,#0a4275,#0d6efd)}
-.cell.back{background:linear-gradient(135deg,#5a1e02,#fd7e14)}
-.cell.swap{background:linear-gradient(135deg,#41246d,#6f42c1)}
-.cell.jump{background:linear-gradient(135deg,#183153,#20c997)}
-.cell.safe{background:linear-gradient(135deg,#2c2f48,#6c757d)}
+.cell.theme-a{background:linear-gradient(160deg,#b4e1ff,#8ed0ff)}
+.cell.theme-b{background:linear-gradient(160deg,#f8b3d8,#f59cc9)}
+.cell.theme-c{background:linear-gradient(160deg,#ffd39a,#ffc078)}
+.cell.theme-d{background:linear-gradient(160deg,#c7b6ff,#b49bff)}
+
+/* 在主题色基础上对不同类型略作偏移增强 */
+.cell.start{background:linear-gradient(160deg,#9ad8b4,#79cfa1)}
+.cell.end{background:linear-gradient(160deg,#ffb3b9,#ff8a9a)}
+.cell.boost{filter:saturate(1.1)}
+.cell.back{filter:saturate(1.1)}
+.cell.swap{filter:saturate(1.1)}
+.cell.jump{filter:saturate(1.1)}
+.cell.safe{filter:saturate(1.05)}
+
+/* 特殊格星形水印 */
+.cell.safe::after,.cell.jump::after,.cell.swap::after,.cell.boost::after,.cell.back::after{content:"★";position:absolute;font-size:22px;color:rgba(255,255,255,.18);inset:auto 6px 6px auto}
 /* 任务弹窗 */
 .modal.hidden{display:none}
 .modal{position:fixed;inset:0;z-index:50}
@@ -54,5 +67,10 @@ select,input{background:#1c2044;border:1px solid #2e356f;color:#fff;border-radiu
 
 .winner{margin-top:12px;padding:12px;border-radius:12px;background:#1a1e3a;border:1px solid #2c3260;font-size:16px}
 .winner.hidden{display:none}
+
+/* 棋盘中心掷骰区域 */
+.center-overlay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:10px;z-index:10;pointer-events:auto}
+.btn.big{padding:14px 18px;font-size:16px;border-radius:12px}
+.center-overlay .dice{width:56px;height:56px;font-size:22px}
 
 

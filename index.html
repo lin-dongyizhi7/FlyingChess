@@ -16,6 +16,7 @@
                     <option value="normal" selected>标准</option>
                     <option value="hard">挑战</option>
                     <option value="custom">自定义</option>
+                    <option value="load">加载任务文件</option>
                 </select>
                 <button id="resetBtn" class="btn">重开</button>
             </div>
@@ -23,18 +24,19 @@
 
         <main class="main">
             <section class="board-section">
-                <div id="board" class="board" role="grid" aria-label="棋盘"></div>
+                <div id="board" class="board" role="grid" aria-label="棋盘">
+                    <svg id="boardPath" class="board-path" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <polyline id="pathLine" fill="none" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    </svg>
+                    <div id="centerOverlay" class="center-overlay">
+                        <button id="rollBtn" class="btn primary big">掷骰</button>
+                        <div id="diceFace" class="dice">-</div>
+                    </div>
+                </div>
             </section>
             <section class="side">
-                <div class="status">
-                    <div id="turnText">当前：玩家A</div>
-                    <div id="diceFace" class="dice">-</div>
-                </div>
-                <div class="actions">
-                    <button id="rollBtn" class="btn primary">掷骰</button>
-                    <button id="openCustomEditorBtn" class="btn">自定义任务</button>
-                    <button id="openLoadTasksBtn" class="btn">加载任务文件</button>
-                </div>
+                <div class="status"></div>
+                <div class="actions"></div>
                 <div class="legend">
                     <div class="legend-title">格子图例</div>
                     <ul>
