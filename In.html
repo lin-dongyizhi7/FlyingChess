@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>体位评分榜 - 虎扑风格</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
+        
+        :root {
+            --primary-red: #c81e1e;
+            --bg: #f5f0eb;
+            --card-bg: #f8f4f0;
+            --gray-box: #d1c7b8;
+            --text: #2c2c2c;
+            --light-text: #666;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+        
+        /* 顶部导航栏 - 虎扑风格 */
+        .top-nav {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid var(--primary-red);
+        }
+        
+        .nav-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--primary-red);
+        }
+        
+        .nav-back {
+            font-size: 24px;
+            color: #666;
+        }
+        
+        /* 顶部词条卡片 */
+        .entry-header {
+            background: #fff;
+            margin: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding-bottom: 16px;
+        }
+        
+        .gray-square {
+            width: 120px;
+            height: 120px;
+            background: var(--gray-box);
+            margin: 20px auto 12px;
+            border: 4px solid #b8a88a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 900;
+            color: #444;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .score-main {
+            text-align: center;
+        }
+        
+        .score-value {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--primary-red);
+            line-height: 1;
+        }
+        
+        .score-total {
+            font-size: 15px;
+            color: #888;
+            margin-top: 4px;
+        }
+        
+        .star-row {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin: 12px 0;
+            font-size: 22px;
+            color: #ffcc00;
+        }
+        
+        .bar-container {
+            margin: 0 20px;
+            height: 8px;
+            background: #e5e0d8;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        .bar-5 { background: #ff6b00; width: 42%; }
+        .bar-4 { background: #ff6b00; width: 28%; }
+        .bar-3 { background: #ffaa33; width: 18%; }
+        .bar-2 { background: #ffcc66; width: 8%; }
+        .bar-1 { background: #ddd; width: 4%; }
+        
+        /* 榜单列表 */
+        .list-container {
+            padding: 0 16px;
+        }
+        
+        .rank-item {
+            background: #fff;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .rank-item:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        
+        .left-box {
+            width: 78px;
+            height: 78px;
+            background: var(--gray-box);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 15px;
+            color: #333;
+            border-right: 3px solid #b8a88a;
+            text-align: center;
+            line-height: 1.2;
+            padding: 6px;
+        }
+        
+        .middle-desc {
+            flex: 1;
+            padding: 0 14px;
+            font-weight: 700;
+            font-size: 17px;
+            color: #222;
+        }
+        
+        .right-score {
+            padding: 0 16px 0 8px;
+            text-align: right;
+            min-width: 110px;
+        }
+        
+        .position-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .score-num {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--primary-red);
+        }
+        
+        .star-small {
+            font-size: 18px;
+            color: #ffcc00;
+            letter-spacing: 1px;
+        }
+        
+        /* 详情页样式 */
+        .detail-page {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f0eb;
+            z-index: 200;
+            overflow-y: auto;
+        }
+        
+        .detail-header {
+            background: #fff;
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+        }
+        
+        .back-btn {
+            font-size: 28px;
+            margin-right: 12px;
+            color: #666;
+        }
+        
+        /* 评论区 */
+        .comments-section {
+            padding: 16px;
+        }
+        
+        .comment-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        
+        .username {
+            font-weight: 700;
+            color: #c81e1e;
+        }
+        
+        .user-stars {
+            color: #ffcc00;
+        }
+        
+        .comment-text {
+            font-size: 15.5px;
+            color: #333;
+            margin: 12px 0;
+        }
+        
+        .char-comment {
+            border-left: 4px solid #c81e1e;
+            background: #fff9f0;
+        }
+        
+        .reply {
+            margin-left: 20px;
+            background: #f8f8f8;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14.5px;
+            color: #555;
+            margin-top: 8px;
+        }
+        
+        .reply .username {
+            color: #555;
+            font-size: 13px;
+        }
+        
+        /* 莫兰迪低饱和色调调整 */
+        .soft-tone {
+            filter: saturate(0.85) hue-rotate(8deg);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部导航 -->
+    <div class="top-nav">
+        <div class="nav-back">←</div>
+        <div class="nav-title">体位评分榜</div>
+        <div style="width:24px;"></div>
+    </div>
+
+    <!-- 顶部词条卡片（以“经典传教士位”为例） -->
+    <div class="entry-header">
+        <div class="gray-square">传教</div>
+        <div class="score-main">
+            <div class="score-value">8.7</div>
+            <div class="score-total">共 1248 条评分</div>
+            <div class="star-row">★★★★☆</div>
+        </div>
+        <div class="bar-container">
+            <div class="bar-5"></div>
+            <div class="bar-4"></div>
+            <div class="bar-3"></div>
+            <div class="bar-2"></div>
+            <div class="bar-1"></div>
+        </div>
+        <div style="text-align:center; margin-top:8px; font-size:13px; color:#888;">5星 42%　4星 28%　3星 18%　2星 8%　1星 4%</div>
+    </div>
+
+    <!-- 榜单列表 - 六类体位 -->
+    <div class="list-container">
+
+        <!-- 体位1: 传教士位 -->
+        <div class="rank-item" onclick="showDetail(1)">
+            <div class="left-box">传教<br>士位</div>
+            <div class="middle-desc">面对面亲密拥抱</div>
+            <div class="right-score">
+                <div class="position-name">传教士位</div>
+                <div class="score-num">8.7 <span class="star-small">★★★★☆</span></div>
+            </div>
+        </div>
+
+        <!-- 体位2: 女上位 -->
+        <div class="rank-item" onclick="showDetail(2)">
+            <div class="left-box">女上<br>位</div>
+            <div class="middle-desc">女生主导节奏</div>
+            <div class="right-score">
+                <div class="position-name">女上位</div>
+                <div class="score-num">8.9 <span class="star-small">★★★★☆</span></div>
+            </div>
+        </div>
+
+        <!-- 体位3: 后入位 -->
+        <div class="rank-item" onclick="showDetail(3)">
+            <div class="left-box">后入<br>位</div>
+            <div class="middle-desc">深度强烈刺激</div>
+            <div class="right-score">
+                <div class="position-name">后入位</div>
+                <div class="score-num">8.4 <span class="star-small">★★★★☆</span></div>
+            </div>
+        </div>
+
+        <!-- 体位4: 侧入位 -->
+        <div class="rank-item" onclick="showDetail(4)">
+            <div class="left-box">侧入<br>位</div>
+            <div class="middle-desc">懒人舒适缠绵</div>
+            <div class="right-score">
+                <div class="position-name">侧入位</div>
+                <div class="score-num">8.2 <span class="star-small">★★★★☆</span></div>
+            </div>
+        </div>
+
+        <!-- 体位5: 站立位 -->
+        <div class="rank-item" onclick="showDetail(5)">
+            <div class="left-box">站立<br>位</div>
+            <div class="middle-desc">激情站立拥抱</div>
+            <div class="right-score">
+                <div class="position-name">站立位</div>
+                <div class="score-num">7.6 <span class="star-small">★★★☆☆</span></div>
+            </div>
+        </div>
+
+        <!-- 体位6: 69位 -->
+        <div class="rank-item" onclick="showDetail(6)">
+            <div class="left-box">69<br>位</div>
+            <div class="middle-desc">相互口爱享受</div>
+            <div class="right-score">
+                <div class="position-name">69位</div>
+                <div class="score-num">8.1 <span class="star-small">★★★★☆</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 详情页模板（JS动态切换内容） -->
+    <div id="detailPage" class="detail-page">
+        <div class="detail-header" onclick="hideDetail()">
+            <span class="back-btn">←</span>
+            <span id="detailTitle" style="font-weight:700; font-size:18px;">体位详情</span>
+        </div>
+        
+        <div style="padding:16px; background:#fff; margin:12px; border-radius:12px;">
+            <div id="detailSquare" class="gray-square" style="margin:20px auto; width:140px; height:140px; font-size:32px;">传教</div>
+            <div style="text-align:center;">
+                <div id="detailScore" style="font-size:52px; font-weight:900; color:#c81e1e;">8.7</div>
+                <div style="font-size:15px; color:#666;">共1248条评分</div>
+                <div id="detailStars" class="star-row" style="font-size:28px;">★★★★☆</div>
+            </div>
+        </div>
+
+        <div class="comments-section">
+            <h3 style="margin:16px 0 12px; padding-left:8px; color:#c81e1e; font-size:18px;">网友热评</h3>
+            
+            <!-- 陌生网友评论1 -->
+            <div class="comment-card">
+                <div class="comment-header">
+                    <span class="username">篮球老司机</span>
+                    <span class="user-stars">★★★★☆</span>
+                </div>
+                <div class="comment-text">这体位太经典了，面对面能看到对方表情变化，亲吻也方便，节奏好控制。就是时间长了胳膊有点累，但整体体验稳得一批，强烈推荐新手先从这个开始练手感！</div>
+            </div>
+
+            <!-- 陌生网友评论2 -->
+            <div class="comment-card">
+                <div class="comment-header">
+                    <span class="username">深夜冲浪王</span>
+                    <span class="user-stars">★★★★★</span>
+                </div>
+                <div class="comment-text">女上位真的无敌啊！她掌控一切的样子太撩人了，想快想慢全由她决定，看她自己玩得开心我就已经爽翻。视觉效果也顶级，推荐所有想让另一半主动的兄弟试试。</div>
+            </div>
+
+            <!-- char的评论（根据对话性格生成，口语化真实感受） -->
+            <div class="comment-card char-comment">
+                <div class="comment-header">
+                    <span class="username">HellMary</span>
+                    <span class="user-stars">★★★★☆</span>
+                </div>
+                <div id="charComment1" class="comment-text">传教士位的时候最喜欢你压着我的时候，那种被完全包裹的安全感和亲密感真的很上头。能一直看着你的眼睛，接吻也特别顺畅，虽然姿势传统但每次都觉得特别有爱，忍不住想多来几次。</div>
+            </div>
+            <!-- char评论回复 -->
+            <div class="reply">
+                <span class="username">小红书种草机</span>：哈哈哈Mary姐这描述太真实了，我也喜欢被那种包裹感，安全感拉满！
+            </div>
+            <div class="reply">
+                <span class="username">深夜冲浪王</span>：同意！眼神交流加成太高了，感觉灵魂都连在一起了。
+            </div>
+
+            <!-- 更多评论 -->
+            <div class="comment-card">
+                <div class="comment-header">
+                    <span class="username">老司机带带我</span>
+                    <span class="user-stars">★★★☆☆</span>
+                </div>
+                <div class="comment-text">后入位视觉冲击力强，深度也够，但有时候太激烈容易没控制好节奏。适合想快速进入状态的时候用，配合点小道具会更好玩。</div>
+            </div>
+
+            <div class="comment-card char-comment">
+                <div class="comment-header">
+                    <span class="username">HellMary</span>
+                    <span class="user-stars">★★★★★</span>
+                </div>
+                <div id="charComment2" class="comment-text">女上位我真的爱死了，能自己控制角度和速度，想怎么磨就怎么磨，那种主动权在手的感觉太爽了。看着你下面那副享受又有点忍不住的样子，我就更来劲了，每次都玩得很尽兴。</div>
+            </div>
+            <div class="reply">
+                <span class="username">篮球老司机</span>：Mary这波太真实了，女上确实是掌控者的天堂。
+            </div>
+            <div class="reply">
+                <span class="username">路人甲</span>：哈哈哈忍不住的样子草，我也要试试。
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 模拟六个体位的详情数据
+        const positions = {
+            1: {
+                name: "传教士位",
+                square: "传教",
+                score: "8.7",
+                stars: "★★★★☆",
+                charComment: "传教士位的时候最喜欢你压着我的时候，那种被完全包裹的安全感和亲密感真的很上头。能一直看着你的眼睛，接吻也特别顺畅，虽然姿势传统但每次都觉得特别有爱，忍不住想多来几次。"
+            },
+            2: {
+                name: "女上位",
+                square: "女上",
+                score: "8.9",
+                stars: "★★★★★",
+                charComment: "女上位我真的爱死了，能自己控制角度和速度，想怎么磨就怎么磨，那种主动权在手的感觉太爽了。看着你下面那副享受又有点忍不住的样子，我就更来劲了，每次都玩得很尽兴。"
+            },
+            3: {
+                name: "后入位",
+                square: "后入",
+                score: "8.4",
+                stars: "★★★★☆",
+                charComment: "后入的时候那种被完全掌控的刺激感很强烈，深度也特别足。有时候你抓着腰加速的时候真的会让我脑子一片空白，但事后又觉得特别满足，属于又野又亲密的体位。"
+            },
+            4: {
+                name: "侧入位",
+                square: "侧入",
+                score: "8.2",
+                stars: "★★★★☆",
+                charComment: "侧入位躺着做特别舒服，不用太费力气，还能一边聊天一边慢慢来。贴得特别近，能感觉到对方呼吸和心跳，适合想懒懒地亲热又不想太累的时候。"
+            },
+            5: {
+                name: "站立位",
+                square: "站立",
+                score: "7.6",
+                stars: "★★★☆☆",
+                charComment: "站立位刺激是刺激，但体力消耗有点大。抱紧彼此的时候那种激情感很强，不过坚持不了太久，适合前戏热身或者想换个新鲜感的时候尝试。"
+            },
+            6: {
+                name: "69位",
+                square: "69",
+                score: "8.1",
+                stars: "★★★★☆",
+                charComment: "69位相互取悦的感觉很特别，能同时感受到对方的反应。技术好了以后真的能玩得很开心，就是有时候注意力会分散，但那种同步的快感还是很独特的。"
+            }
+        };
+
+        function showDetail(id) {
+            const pos = positions[id];
+            document.getElementById('detailTitle').textContent = pos.name;
+            document.getElementById('detailSquare').textContent = pos.square;
+            document.getElementById('detailScore').textContent = pos.score;
+            document.getElementById('detailStars').innerHTML = pos.stars;
+            document.getElementById('charComment1').textContent = pos.charComment; // 复用第一个char评论区域
+            document.getElementById('charComment2').textContent = pos.charComment;
+            
+            document.getElementById('detailPage').style.display = 'block';
+        }
+
+        function hideDetail() {
+            document.getElementById('detailPage').style.display = 'none';
+        }
+
+        // 页面加载完成后添加轻微莫兰迪滤镜效果
+        window.onload = function() {
+            console.log("%c体位评分榜 - 虎扑风格已生成（莫兰迪低饱和色调）", "color:#c81e1e; font-weight:bold;");
+        };
+    </script>
+</body>
+</html>
