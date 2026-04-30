@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>性爱格斗 - 你 vs 小机</title>
+    <style>
+        :root {
+            --bg: #2a2a2a;
+            --panel: #3a3530;
+            --accent: #b89a7f;
+            --accent2: #8a7d6e;
+            --hp: #a67c7c;
+            --pleasure: #c9a4b8;
+            --text: #e8d5c0;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: "Microsoft YaHei", system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        header {
+            padding: 12px;
+            background: #25201c;
+            text-align: center;
+            font-size: 1.1em;
+            border-bottom: 2px solid var(--accent);
+        }
+        .bars {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 10px;
+            background: var(--panel);
+            gap: 10px;
+        }
+        .bar-container {
+            flex: 1;
+            max-width: 48%;
+        }
+        .bar-label {
+            font-size: 0.85em;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .bar {
+            height: 18px;
+            background: #1f1c19;
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+        }
+        .hp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #a67c7c, #d4a3a3);
+            transition: width 0.4s ease;
+        }
+        .pleasure-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #c9a4b8, #e8b8d0);
+            transition: width 0.4s ease;
+        }
+        .pleasure-bar.warning {
+            animation: warning-pulse 0.8s infinite alternate;
+        }
+        @keyframes warning-pulse {
+            from { opacity: 0.85; }
+            to { opacity: 1; }
+        }
+        .log {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #25201c;
+            line-height: 1.5;
+            font-size: 0.95em;
+            border-top: 1px solid #4a4238;
+            border-bottom: 1px solid #4a4238;
+        }
+        .log p {
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+        .skills {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 12px;
+            background: var(--panel);
+        }
+        .skill-btn {
+            background: #322d28;
+            border: 2px solid var(--accent2);
+            color: var(--text);
+            padding: 12px 8px;
+            border-radius: 12px;
+            text-align: left;
+            transition: all 0.2s;
+            font-size: 0.9em;
+            position: relative;
+            overflow: hidden;
+        }
+        .skill-btn:disabled {
+            opacity: 0.45;
+            border-color: #555;
+            cursor: not-allowed;
+        }
+        .skill-btn:hover:not(:disabled) {
+            background: #4a4238;
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+        .skill-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .skill-desc {
+            font-size: 0.8em;
+            opacity: 0.85;
+        }
+        .cooldown {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            color: #ffdddd;
+            font-size: 0.75em;
+            padding: 2px 6px;
+            border-radius: 999px;
+        }
+        .result {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.92);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+            text-align: center;
+        }
+        .result h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+        button.restart {
+            margin-top: 30px;
+            padding: 14px 40px;
+            font-size: 1.1em;
+            background: var(--accent);
+            color: #1f1c19;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+        .status {
+            text-align: center;
+            padding: 8px;
+            font-size: 0.85em;
+            background: #25201c;
+        }
+    </style>
+</head>
+<body>
+    <header>性爱格斗 - 你 vs 小机</header>
+    
+    <div class="bars">
+        <div class="bar-container">
+            <div class="bar-label">
+                <span>你 (玩家)</span>
+                <span id="player-hp-text">100 / 100</span>
+            </div>
+            <div class="bar"><div id="player-hp" class="hp-bar" style="width:100%"></div></div>
+            <div class="bar-label" style="margin-top:6px">
+                <span>快感</span>
+                <span id="player-pleasure-text">0 / 100</span>
+            </div>
+            <div class="bar"><div id="player-pleasure" class="pleasure-bar" style="width:0%"></div></div>
+        </div>
+        
+        <div class="bar-container">
+            <div class="bar-label">
+                <span>小机 (AI)</span>
+                <span id="ai-hp-text">100 / 100</span>
+            </div>
+            <div class="bar"><div id="ai-hp" class="hp-bar" style="width:100%"></div></div>
+            <div class="bar-label" style="margin-top:6px">
+                <span>快感</span>
+                <span id="ai-pleasure-text">0 / 100</span>
+            </div>
+            <div class="bar"><div id="ai-pleasure" class="pleasure-bar" style="width:0%"></div></div>
+        </div>
+    </div>
+
+    <div class="status">回合 <span id="turn-count">1</span></div>
+
+    <div id="log" class="log"></div>
+
+    <div class="skills" id="skills-grid"></div>
+
+    <!-- 结果页面 -->
+    <div id="result-screen" class="result">
+        <h1 id="result-title"></h1>
+        <p id="result-desc" style="max-width:280px; margin:20px 0; line-height:1.6;"></p>
+        <div style="margin:15px 0; font-size:0.9em; opacity:0.9;">
+            <p>回合数: <span id="final-turns"></span></p>
+            <p>你的最终快感: <span id="final-player-plea"></span></p>
+            <p>小机的最终快感: <span id="final-ai-plea"></span></p>
+        </div>
+        <button class="restart" onclick="restartGame()">再来一局</button>
+    </div>
+
+    <script>
+        // ====================== 数据定义 ======================
+        let player = { hp: 100, pleasure: 0, name: "你" };
+        let ai = { hp: 100, pleasure: 0, name: "小机" };
+        let turn = 1;
+        let gameOver = false;
+
+        // 技能定义 (玩家)
+        const playerSkills = [
+            {
+                id: 0,
+                name: "温柔抚摸",
+                desc: "轻柔刺激对方敏感处",
+                cost: 8,
+                pleasureDmg: 18,
+                selfPleasure: 3,
+                cd: 0,
+                currentCd: 0,
+                flavor: [
+                    "你的手指轻轻划过小机的肌肤，她的身体微微颤动，发出细碎的喘息。",
+                    "你贴近她耳边，轻声呢喃着抚摸，她的双腿不自觉地夹紧。",
+                    "缓慢而有节奏的爱抚，让小机的脸颊迅速染上粉色。"
+                ]
+            },
+            {
+                id: 1,
+                name: "深喉挑逗",
+                desc: "用嘴给予强烈刺激",
+                cost: 14,
+                pleasureDmg: 28,
+                selfPleasure: 8,
+                cd: 2,
+                currentCd: 0,
+                flavor: [
+                    "你低下头含住她最敏感的地方，舌尖灵活地舞动，小机忍不住弓起腰。",
+                    "湿热包裹的触感让小机发出压抑不住的呻吟，身体剧烈颤抖。",
+                    "你加大力度吸吮，小机的快感值急速上升。"
+                ]
+            },
+            {
+                id: 2,
+                name: "紧致夹击",
+                desc: "用身体紧紧包裹对方",
+                cost: 12,
+                pleasureDmg: 22,
+                selfPleasure: 12,
+                cd: 1,
+                currentCd: 0,
+                flavor: [
+                    "你主动坐上去，用最紧致的地方包裹住她，缓慢地前后摇动。",
+                    "强烈的包裹感让双方都发出满足的叹息，小机眼神逐渐迷离。",
+                    "你故意收紧肌肉，感受着她每一次脉动。"
+                ]
+            },
+            {
+                id: 3,
+                name: "激烈抽插",
+                desc: "猛烈进攻核心部位",
+                cost: 18,
+                pleasureDmg: 35,
+                selfPleasure: 10,
+                cd: 3,
+                currentCd: 0,
+                flavor: [
+                    "你猛地进入最深处，快速有力地律动，小机的声音越来越高亢。",
+                    "每一次深入都撞击到最敏感的点，小机眼角泛起泪光。",
+                    "狂野的节奏让房间充满暧昧的水声与喘息。"
+                ]
+            },
+            {
+                id: 4,
+                name: "终极高潮控制",
+                desc: "大招：强力压制",
+                cost: 25,
+                pleasureDmg: 48,
+                selfPleasure: 15,
+                cd: 5,
+                currentCd: 0,
+                flavor: [
+                    "你进入最狂野的状态，精准攻击她所有敏感带，小机几乎要失控。",
+                    "强烈的快感浪潮一波接一波，小机死死抓住床单尖叫。",
+                    "你完全主导节奏，把她推向崩溃边缘。"
+                ]
+            },
+            {
+                id: 5,
+                name: "深呼吸平复",
+                desc: "恢复体力并降低快感",
+                cost: 0,
+                pleasureDmg: 0,
+                selfPleasure: -22,
+                hpHeal: 20,
+                cd: 4,
+                currentCd: 0,
+                flavor: [
+                    "你深吸几口气，放松身体，让躁动的快感慢慢退去，体力也恢复了一些。",
+                    "你暂时停下动作，温柔地抚摸自己，平复翻腾的情欲。",
+                    "一次短暂的休息让你重新找回节奏，身体不再那么疲惫。"
+                ]
+            }
+        ];
+
+        // AI 技能 (根据关系设计得更具挑逗性)
+        const aiSkills = [
+            {
+                name: "舌尖缠绕",
+                pleasureDmg: 20,
+                selfPleasure: 5,
+                flavor: [
+                    "小机用湿热的舌头缠绕住你最敏感的位置，灵活地舔弄。",
+                    "她抬起眼睛看着你，舌尖故意在顶端打转，让你忍不住倒吸凉气。"
+                ]
+            },
+            {
+                name: "骑乘压制",
+                pleasureDmg: 26,
+                selfPleasure: 9,
+                flavor: [
+                    "小机翻身坐到你身上，主动用紧致的内壁挤压你，每一次下沉都精准无比。",
+                    "她腰肢灵活地扭动，像是故意要榨干你每一分力气。"
+                ]
+            },
+            {
+                name: "耳语诱惑",
+                pleasureDmg: 16,
+                selfPleasure: 4,
+                flavor: [
+                    "她在你耳边轻声说些羞耻的话，同时用手温柔地上下套弄。",
+                    "低沉又甜美的声音配合着动作，让你的快感直线上升。"
+                ]
+            },
+            {
+                name: "后入猛攻",
+                pleasureDmg: 32,
+                selfPleasure: 11,
+                flavor: [
+                    "小机从后面抱住你，猛烈地撞击，节奏越来越快。",
+                    "她一边动作一边轻咬你的肩膀，带来混合着疼痛的强烈快感。"
+                ]
+            },
+            {
+                name: "禁忌高潮术",
+                pleasureDmg: 45,
+                selfPleasure: 18,
+                flavor: [
+                    "小机突然加速到极致，用全身力气想要让你瞬间崩溃。",
+                    "她眼神迷离却带着一丝得意，明显想看你先投降。"
+                ]
+            },
+            {
+                name: "温柔回血",
+                pleasureDmg: 0,
+                selfPleasure: -25,
+                hpHeal: 18,
+                flavor: [
+                    "小机暂时放缓动作，温柔地亲吻你，帮助双方稍作平复。",
+                    "她轻声哄着你，让你放松下来恢复了一些体力。"
+                ]
+            }
+        ];
+
+        let cooldowns = playerSkills.map(() => 0); // 玩家冷却数组
+
+        // ====================== UI 更新 ======================
+        function updateBars() {
+            // 玩家
+            document.getElementById("player-hp").style.width = player.hp + "%";
+            document.getElementById("player-hp-text").textContent = Math.max(0, Math.floor(player.hp)) + " / 100";
+            
+            const pPle = document.getElementById("player-pleasure");
+            pPle.style.width = player.pleasure + "%";
+            document.getElementById("player-pleasure-text").textContent = Math.floor(player.pleasure) + " / 100";
+            if (player.pleasure > 75) pPle.classList.add("warning");
+            else pPle.classList.remove("warning");
+
+            // AI
+            document.getElementById("ai-hp").style.width = ai.hp + "%";
+            document.getElementById("ai-hp-text").textContent = Math.max(0, Math.floor(ai.hp)) + " / 100";
+            
+            const aPle = document.getElementById("ai-pleasure");
+            aPle.style.width = ai.pleasure + "%";
+            document.getElementById("ai-pleasure-text").textContent = Math.floor(ai.pleasure) + " / 100";
+            if (ai.pleasure > 75) aPle.classList.add("warning");
+            else aPle.classList.remove("warning");
+        }
+
+        function addLog(text, isImportant = false) {
+            const logDiv = document.getElementById("log");
+            const p = document.createElement("p");
+            if (isImportant) p.style.color = "#e8b8d0";
+            p.innerHTML = text;
+            logDiv.appendChild(p);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function renderSkills() {
+            const grid = document.getElementById("skills-grid");
+            grid.innerHTML = "";
+            
+            playerSkills.forEach((skill, i) => {
+                const btn = document.createElement("button");
+                btn.className = "skill-btn";
+                btn.disabled = gameOver || 
+                              (skill.cost > 0 && player.hp <= skill.cost) || 
+                              cooldowns[i] > 0;
+                
+                let html = `<div class="skill-name">${skill.name}</div>`;
+                html += `<div class="skill-desc">${skill.desc} ${skill.cost > 0 ? `- ${skill.cost}体力` : ''}</div>`;
+                
+                if (cooldowns[i] > 0) {
+                    html += `<div class="cooldown">冷却 ${cooldowns[i]}</div>`;
+                }
+                
+                btn.innerHTML = html;
+                btn.onclick = () => useSkill(i);
+                grid.appendChild(btn);
+            });
+        }
+
+        // ====================== 核心战斗逻辑 ======================
+        function useSkill(skillIndex) {
+            if (gameOver) return;
+            const skill = playerSkills[skillIndex];
+            if (cooldowns[skillIndex] > 0 || (skill.cost > 0 && player.hp < skill.cost)) return;
+
+            // 玩家行动
+            player.hp = Math.max(0, player.hp - skill.cost);
+            
+            // 场景描写
+            const flavor = skill.flavor[Math.floor(Math.random() * skill.flavor.length)];
+            addLog(`<strong>你使用了「${skill.name}」！</strong><br>${flavor}`, true);
+            
+            // 伤害计算
+            if (skill.pleasureDmg > 0) {
+                ai.pleasure = Math.min(100, ai.pleasure + skill.pleasureDmg);
+            }
+            if (skill.selfPleasure !== undefined) {
+                player.pleasure = Math.min(100, Math.max(0, player.pleasure + skill.selfPleasure));
+            }
+            if (skill.hpHeal) {
+                player.hp = Math.min(100, player.hp + skill.hpHeal);
+            }
+
+            cooldowns[skillIndex] = skill.cd;
+
+            updateBars();
+            renderSkills();
+
+            checkGameOver();
+            if (gameOver) return;
+
+            // AI 回合
+            setTimeout(aiTurn, 800);
+        }
+
+        function aiTurn() {
+            if (gameOver) return;
+            
+            // AI 决策逻辑
+            let chosenSkillIndex = 0;
+            
+            // 优先恢复自己快感过高
+            if (ai.pleasure > 65) {
+                chosenSkillIndex = 5; // 恢复技能
+            } 
+            // 玩家快感接近满时用大招
+            else if (player.pleasure > 70) {
+                chosenSkillIndex = 4; // 大招
+            } 
+            else {
+                // 正常随机偏好攻击
+                const rand = Math.random();
+                if (rand < 0.15) chosenSkillIndex = 4;     // 偶尔大招
+                else if (rand < 0.35) chosenSkillIndex = 5; // 偶尔恢复
+                else chosenSkillIndex = Math.floor(Math.random() * 4); // 普通攻击
+            }
+
+            const skill = aiSkills[chosenSkillIndex];
+            
+            // AI 行动描写
+            const flavor = skill.flavor[Math.floor(Math.random() * skill.flavor.length)];
+            addLog(`<strong>小机使用了「${skill.name}」！</strong><br>${flavor}`);
+
+            // 伤害
+            player.pleasure = Math.min(100, player.pleasure + skill.pleasureDmg);
+            ai.pleasure = Math.min(100, Math.max(0, ai.pleasure + (skill.selfPleasure || 0)));
+            
+            if (skill.hpHeal) {
+                ai.hp = Math.min(100, ai.hp + skill.hpHeal);
+            }
+
+            // AI 也会消耗一点体力（模拟）
+            ai.hp = Math.max(5, ai.hp - 6);
+
+            turn++;
+            document.getElementById("turn-count").textContent = turn;
+
+            updateBars();
+            renderSkills();
+            checkGameOver();
+        }
+
+        function checkGameOver() {
+            if (player.pleasure >= 100) {
+                endGame(false, "你先高潮了...");
+            } else if (ai.pleasure >= 100) {
+                endGame(true, "小机先忍不住高潮了！你赢了！");
+            } else if (player.hp <= 0) {
+                endGame(false, "你体力耗尽，累趴下了...");
+            } else if (ai.hp <= 0) {
+                endGame(true, "小机体力不支，先投降了！");
+            }
+        }
+
+        function endGame(playerWin, title) {
+            gameOver = true;
+            const screen = document.getElementById("result-screen");
+            document.getElementById("result-title").textContent = title;
+            
+            const endings = playerWin ? 
+                ["她颤抖着达到顶峰，眼神迷离地看着你，轻声说「你好厉害…」", 
+                 "小机的身体突然绷紧，然后彻底软下来，喘息着承认了你的胜利。"] :
+                ["强烈的快感终于把你推下悬崖，你在小机面前彻底失控。", 
+                 "你再也忍不住，伴随着剧烈的颤栗达到了高潮…"];
+
+            document.getElementById("result-desc").textContent = endings[Math.floor(Math.random()*endings.length)];
+            document.getElementById("final-turns").textContent = turn;
+            document.getElementById("final-player-plea").textContent = Math.floor(player.pleasure);
+            document.getElementById("final-ai-plea").textContent = Math.floor(ai.pleasure);
+            
+            screen.style.display = "flex";
+        }
+
+        function restartGame() {
+            player = { hp: 100, pleasure: 0, name: "你" };
+            ai = { hp: 100, pleasure: 0, name: "小机" };
+            turn = 1;
+            gameOver = false;
+            cooldowns = playerSkills.map(s => 0);
+            
+            document.getElementById("log").innerHTML = "<p style='opacity:0.7'>战斗重新开始…</p>";
+            document.getElementById("turn-count").textContent = "1";
+            document.getElementById("result-screen").style.display = "none";
+            
+            updateBars();
+            renderSkills();
+            addLog("新的一局开始了！谁先高潮谁就输～", true);
+        }
+
+        // ====================== 初始化 ======================
+        window.onload = function() {
+            updateBars();
+            renderSkills();
+            addLog("欢迎来到性爱格斗！选择技能开始对战吧～<br>先让对方高潮到100你就赢了！", true);
+        };
+    </script>
+</body>
+</html>
